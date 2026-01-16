@@ -1,0 +1,24 @@
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+
+const db = require('./config/db');
+
+db.getConnection()
+  .then(() => console.log('MySQL conectado correctamente'))
+  .catch(err => console.error('Error MySQL:', err));
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.get('/', (req, res) => {
+  res.json({ message: 'API Veterinaria funcionando' });
+});
+
+const clientRoutes = require('./routes/clientRoutes');
+
+app.use('/api/clients', clientRoutes);
+
+module.exports = app;
