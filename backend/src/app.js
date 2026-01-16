@@ -18,7 +18,9 @@ app.get('/', (req, res) => {
 });
 
 const clientRoutes = require('./routes/clientRoutes');
-
 app.use('/api/clients', clientRoutes);
+
+const petRoutes = require('./routes/petRoutes');
+app.use('/api/pets', petRoutes);
 
 module.exports = app;
