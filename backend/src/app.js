@@ -23,4 +23,7 @@ app.use('/api/clients', clientRoutes);
 const petRoutes = require('./routes/petRoutes');
 app.use('/api/pets', petRoutes);
 
+const appointmentsRoutes = require('./routes/appointmentRoutes');
+app.use('/api/appointments', appointmentsRoutes);
+
 module.exports = app;
