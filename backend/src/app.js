@@ -26,4 +26,7 @@ app.use('/api/pets', petRoutes);
 const appointmentsRoutes = require('./routes/appointmentRoutes');
 app.use('/api/appointments', appointmentsRoutes);
 
+const authRoutes = require('./routes/authRoutes');
+app.use('/api/auth', authRoutes);
+
 module.exports = app;
