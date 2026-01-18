@@ -29,4 +29,7 @@ app.use('/api/appointments', appointmentsRoutes);
 const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth', authRoutes);
 
+const medicalRecordRoutes = require('./routes/medicalRecordRoutes');
+app.use("/api/medical-record", medicalRecordRoutes);
+
 module.exports = app;
