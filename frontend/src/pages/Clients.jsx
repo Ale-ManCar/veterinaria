@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import MedicalRecords from "../components/MedicalRecords";
+
 export default function Clients() {
   const [clients, setClients] = useState([]);
   const [pets, setPets] = useState([]);
@@ -13,6 +15,8 @@ export default function Clients() {
 
   const [petName, setPetName] = useState("");
   const [species, setSpecies] = useState("");
+
+  const [selectedPet, setSelectedPet] = useState(null);
 
   const token = localStorage.getItem("token");
 
@@ -219,12 +223,23 @@ export default function Clients() {
           ) : (
             <ul className="list-disc ml-6">
               {pets.map((p) => (
-                <li key={p.id}>
-                  {p.name} — {p.species}
+                <li
+                  key={p.id}
+                  className="cursor-pointer text-blue-600"
+                  onClick={() => setSelectedPet(p)}
+                  >
+                    {p.name} - {p.species} (ver historial)
                 </li>
               ))}
             </ul>
           )}
+        </div>
+      )}
+
+      {/* HOSTORIAL MEDICO */}
+      {selectedPet && (
+        <div className="mt-6">
+          <MedicalRecords pet={selectedPet} />
         </div>
       )}
     </div>

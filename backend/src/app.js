@@ -30,6 +30,6 @@ const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth', authRoutes);
 
 const medicalRecordRoutes = require('./routes/medicalRecordRoutes');
-app.use("/api/medical-record", medicalRecordRoutes);
+app.use("/api/medical-records", medicalRecordRoutes);
 
 module.exports = app;
