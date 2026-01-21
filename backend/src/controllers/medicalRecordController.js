@@ -8,7 +8,15 @@ exports.getRecordsByPet = async (req, res) => {
 
   try {
     const [rows] = await db.query(
-      "SELECT * FROM medical_records WHERE pet_id = ? ORDER BY created_at DESC",
+      `
+      SELECT 
+        mr.*, 
+        u.name AS vet_name
+      FROM medical_records mr
+      JOIN users u ON mr.user_id = u.id
+      WHERE mr.pet_id = ?
+      ORDER BY mr.created_at DESC
+      `,
       [petId]
     );
 

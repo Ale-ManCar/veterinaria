@@ -28,6 +28,11 @@ export default function MedicalRecords({ pet, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!visitDate) {
+      alert("La fecha de la consulta es obligatoria");
+      return;
+    }
+
     const res = await fetch("http://localhost:3000/api/medical-records", {
       method: "POST",
       headers: {
@@ -43,7 +48,7 @@ export default function MedicalRecords({ pet, onClose }) {
     });
 
     if (!res.ok) {
-      console.error("Error al guardar historial");
+      alert("Error al guardar historial clínico");
       return;
     }
 
@@ -68,6 +73,7 @@ export default function MedicalRecords({ pet, onClose }) {
 
   return (
     <div className="mt-4 bg-white p-4 rounded shadow">
+      {/* Header */}
       <div className="flex justify-between items-center mb-3">
         <h3 className="text-lg font-bold">
           Historial clínico — {pet.name}
@@ -77,6 +83,7 @@ export default function MedicalRecords({ pet, onClose }) {
         </button>
       </div>
 
+      {/* Botón nueva consulta */}
       <button
         onClick={() => setShowForm(true)}
         className="mb-4 bg-green-600 text-white px-3 py-1 rounded"
@@ -84,6 +91,7 @@ export default function MedicalRecords({ pet, onClose }) {
         + Nueva consulta
       </button>
 
+      {/* Formulario */}
       {showForm && (
         <form
           onSubmit={handleSubmit}
@@ -113,13 +121,15 @@ export default function MedicalRecords({ pet, onClose }) {
 
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded"
+            disabled={!visitDate}
+            className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
           >
             Guardar
           </button>
         </form>
       )}
 
+      {/* Listado */}
       {records.length === 0 ? (
         <p className="text-gray-500">
           No hay historial clínico registrado
@@ -132,6 +142,12 @@ export default function MedicalRecords({ pet, onClose }) {
                 Consulta:{" "}
                 {new Date(r.visit_date).toLocaleDateString()}
               </p>
+
+              {r.vet_name && (
+                <p className="text-sm text-gray-500">
+                  Veterinario: {r.vet_name}
+                </p>
+              )}
 
               {r.diagnosis && (
                 <p>
@@ -149,22 +165,26 @@ export default function MedicalRecords({ pet, onClose }) {
                 Registrado:{" "}
                 {new Date(r.created_at).toLocaleString()}
               </p>
-              <button onClick={async () => {
-                if (!confirm("¿Eliminar este registro?")) return;
 
-                await fetch(
-                  `http://localhost:3000/api/medical-records/${r.id}`,
-                  {
-                    method: "DELETE",
-                    headers: {
-                      Authorization: `Bearer ${token}`,
-                    },
-                  }
-                );
+              <button
+                onClick={async () => {
+                  if (!confirm("¿Eliminar este registro?")) return;
 
-                setRecords(records.filter(item => item.id !== r.id));
-              }}
-              className="text-red-600 text-sm mt-2"
+                  await fetch(
+                    `http://localhost:3000/api/medical-records/${r.id}`,
+                    {
+                      method: "DELETE",
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                    }
+                  );
+
+                  setRecords(
+                    records.filter((item) => item.id !== r.id)
+                  );
+                }}
+                className="text-red-600 text-sm mt-2"
               >
                 🗑 Eliminar
               </button>
