@@ -1,6 +1,8 @@
 const db = require("../config/db");
 
-// Obtener historial por mascota
+// ===============================
+// OBTENER HISTORIAL POR MASCOTA
+// ===============================
 exports.getRecordsByPet = async (req, res) => {
   const { petId } = req.params;
 
@@ -9,6 +11,7 @@ exports.getRecordsByPet = async (req, res) => {
       "SELECT * FROM medical_records WHERE pet_id = ? ORDER BY created_at DESC",
       [petId]
     );
+
     res.json(rows);
   } catch (error) {
     console.error(error);
@@ -16,26 +19,46 @@ exports.getRecordsByPet = async (req, res) => {
   }
 };
 
-// Crear historial
+// ===============================
+// CREAR HISTORIAL CLÍNICO
+// ===============================
 exports.createRecord = async (req, res) => {
-  const { pet_id, diagnosis, treatment, visit_date } = req.body;
-  const user_id = req.user.id; // viene del JWT
+  const { pet_id, visit_date, diagnosis, treatment } = req.body;
+  const user_id = req.user.id; // 🔑 viene del token
 
   if (!pet_id || !visit_date) {
     return res.status(400).json({ message: "Datos incompletos" });
   }
 
   try {
-    await db.query(
-      `INSERT INTO medical_records
+    const [result] = await db.query(
+      `INSERT INTO medical_records 
        (pet_id, user_id, visit_date, diagnosis, treatment)
        VALUES (?, ?, ?, ?, ?)`,
       [pet_id, user_id, visit_date, diagnosis, treatment]
     );
 
-    res.status(201).json({ message: "Historial clínico creado" });
+    res.status(201).json({
+      message: "Historial clínico creado",
+      id: result.insertId,
+    });
   } catch (error) {
-    console.error(error); // 🔥 ahora sí verás el error
+    console.error("❌ ERROR INSERT MEDICAL:", error);
     res.status(500).json({ message: "Error al crear historial clínico" });
+  }
+};
+
+// ===============================
+// ELIMINAR HISTORIAL
+// ===============================
+exports.deleteRecord = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await db.query("DELETE FROM medical_records WHERE id = ?", [id]);
+    res.json({ message: "Historial eliminado" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al eliminar historial clínico" });
   }
 };

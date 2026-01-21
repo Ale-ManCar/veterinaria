@@ -149,6 +149,25 @@ export default function MedicalRecords({ pet, onClose }) {
                 Registrado:{" "}
                 {new Date(r.created_at).toLocaleString()}
               </p>
+              <button onClick={async () => {
+                if (!confirm("¿Eliminar este registro?")) return;
+
+                await fetch(
+                  `http://localhost:3000/api/medical-records/${r.id}`,
+                  {
+                    method: "DELETE",
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  }
+                );
+
+                setRecords(records.filter(item => item.id !== r.id));
+              }}
+              className="text-red-600 text-sm mt-2"
+              >
+                🗑 Eliminar
+              </button>
             </li>
           ))}
         </ul>

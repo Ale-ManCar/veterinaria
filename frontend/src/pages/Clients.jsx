@@ -19,6 +19,7 @@ export default function Clients() {
   const [selectedPet, setSelectedPet] = useState(null);
 
   const token = localStorage.getItem("token");
+  console.log("TOKEN:", token)
 
   // ===============================
   // CARGAR CLIENTES
@@ -37,16 +38,24 @@ export default function Clients() {
   // CARGAR MASCOTAS DEL CLIENTE
   // ===============================
   useEffect(() => {
-    if (!selectedClient) return;
+  if (!selectedClient) return;
 
-    fetch(`http://localhost:3000/api/pets/clients/${selectedClient.id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  fetch(`http://localhost:3000/api/pets/clients/${selectedClient.id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error("No autorizado");
+      return res.json();
     })
-      .then((res) => res.json())
-      .then((data) => setPets(data));
-  }, [selectedClient]);
+    .then((data) => {
+      setPets(Array.isArray(data) ? data : []);
+    })
+    .catch(() => {
+      setPets([]);
+    });
+}, [selectedClient, token]);
 
   // ===============================
   // CREAR CLIENTE
@@ -222,7 +231,7 @@ export default function Clients() {
             </p>
           ) : (
             <ul className="list-disc ml-6">
-              {pets.map((p) => (
+              {Array.isArray(pets) && pets.map((p) => (
                 <li
                   key={p.id}
                   className="cursor-pointer text-blue-600"
@@ -238,9 +247,10 @@ export default function Clients() {
 
       {/* HOSTORIAL MEDICO */}
       {selectedPet && (
-        <div className="mt-6">
-          <MedicalRecords pet={selectedPet} />
-        </div>
+        <MedicalRecords
+          pet={selectedPet}
+          onClose={() => setSelectedPet(null)}
+        />
       )}
     </div>
   );
