@@ -63,16 +63,32 @@ exports.createRecord = async (req, res) => {
 // ===============================
 exports.deleteRecord = async (req, res) => {
   const { id } = req.params;
+  const userId = req.user.id;
 
   try {
+    const [[record]] = await db.query(
+      "SELECT user_id FROM medical_records WHERE id = ?",
+      [id]
+    );
+
+    if (!record) {
+      return res.status(404).json({ message: "Registro no encontrado" });
+    }
+
+    if (record.user_id !== userId) {
+      return res
+        .status(403)
+        .json({ message: "No tienes permiso para eliminar este registro" });
+    }
+
     await db.query("DELETE FROM medical_records WHERE id = ?", [id]);
-    res.json({ message: "Historial eliminado" });
+
+    res.json({ message: "Historial eliminado correctamente" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error al eliminar historial clínico" });
   }
 };
-
 
 // ==================================
 // ✏️ ACTUALIZAR HISTORIAL CLÍNICO

@@ -1,41 +1,56 @@
 import { useEffect, useState } from "react";
 
 export default function MedicalRecords({ pet, onClose }) {
+  // 🔐 Token y usuario (ORDEN CORRECTO)
+  const token = localStorage.getItem("token");
+  const user = token
+    ? JSON.parse(atob(token.split(".")[1]))
+    : null;
+
   const [records, setRecords] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
-  // crear
+  // ➕ Crear
   const [visitDate, setVisitDate] = useState("");
   const [diagnosis, setDiagnosis] = useState("");
   const [treatment, setTreatment] = useState("");
 
-  // editar
+  // ✏️ Editar
   const [editingId, setEditingId] = useState(null);
   const [editVisitDate, setEditVisitDate] = useState("");
   const [editDiagnosis, setEditDiagnosis] = useState("");
   const [editTreatment, setEditTreatment] = useState("");
 
-  const token = localStorage.getItem("token");
-
+  // ===============================
   // 🔹 Cargar historial clínico
+  // ===============================
   const loadRecords = async () => {
-    if (!pet?.id) return;
+    if (!pet?.id || !token) return;
 
-    const res = await fetch(
-      `http://localhost:3000/api/medical-records/pets/${pet.id}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/medical-records/pets/${pet.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    setRecords(await res.json());
+      const data = await res.json();
+      setRecords(data);
+    } catch (error) {
+      console.error("Error al cargar historial:", error);
+    }
   };
 
   useEffect(() => {
     loadRecords();
   }, [pet?.id]);
 
-  // 🔹 Crear registro clínico
+  // ===============================
+  // ➕ Crear historial clínico
+  // ===============================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -74,7 +89,9 @@ export default function MedicalRecords({ pet, onClose }) {
     loadRecords();
   };
 
+  // ===============================
   // ✏️ Iniciar edición
+  // ===============================
   const startEdit = (r) => {
     setEditingId(r.id);
     setEditVisitDate(r.visit_date.split("T")[0]);
@@ -82,8 +99,15 @@ export default function MedicalRecords({ pet, onClose }) {
     setEditTreatment(r.treatment || "");
   };
 
+  // ===============================
   // 💾 Guardar edición
+  // ===============================
   const saveEdit = async (id) => {
+    if (!editVisitDate) {
+      alert("La fecha es obligatoria");
+      return;
+    }
+
     const res = await fetch(
       `http://localhost:3000/api/medical-records/${id}`,
       {
@@ -109,6 +133,9 @@ export default function MedicalRecords({ pet, onClose }) {
     loadRecords();
   };
 
+  // ===============================
+  // 🧱 UI
+  // ===============================
   return (
     <div className="mt-4 bg-white p-4 rounded shadow">
       {/* Header */}
@@ -116,11 +143,15 @@ export default function MedicalRecords({ pet, onClose }) {
         <h3 className="text-lg font-bold">
           Historial clínico — {pet.name}
         </h3>
-        <button onClick={onClose} className="text-red-600 font-bold">
+        <button
+          onClick={onClose}
+          className="text-red-600 font-bold"
+        >
           ✕
         </button>
       </div>
 
+      {/* Botón nueva consulta */}
       <button
         onClick={() => setShowForm(true)}
         className="mb-4 bg-green-600 text-white px-3 py-1 rounded"
@@ -220,9 +251,7 @@ export default function MedicalRecords({ pet, onClose }) {
                 <>
                   <p className="font-semibold">
                     Consulta:{" "}
-                    {new Date(
-                      r.visit_date
-                    ).toLocaleDateString()}
+                    {new Date(r.visit_date).toLocaleDateString()}
                   </p>
 
                   {r.vet_name && (
@@ -245,9 +274,7 @@ export default function MedicalRecords({ pet, onClose }) {
 
                   <p className="text-sm text-gray-400">
                     Registrado:{" "}
-                    {new Date(
-                      r.created_at
-                    ).toLocaleString()}
+                    {new Date(r.created_at).toLocaleString()}
                   </p>
 
                   <div className="flex gap-3 mt-2">
@@ -258,36 +285,38 @@ export default function MedicalRecords({ pet, onClose }) {
                       ✏️ Editar
                     </button>
 
-                    <button
-                      onClick={async () => {
-                        if (
-                          !confirm(
-                            "¿Eliminar este registro?"
-                          )
-                        )
-                          return;
+                    {user && r.user_id === user.id && (
+                      <button
+                        onClick={async () => {
+                          if (!confirm("¿Eliminar este registro?")) return;
 
-                        await fetch(
-                          `http://localhost:3000/api/medical-records/${r.id}`,
-                          {
-                            method: "DELETE",
-                            headers: {
-                              Authorization: `Bearer ${token}`,
-                            },
+                          const res = await fetch(
+                            `http://localhost:3000/api/medical-records/${r.id}`,
+                            {
+                              method: "DELETE",
+                              headers: {
+                                Authorization: `Bearer ${token}`,
+                              },
+                            }
+                          );
+
+                          if (res.ok) {
+                            setRecords(
+                              records.filter(
+                                (item) => item.id !== r.id
+                              )
+                            );
+                          } else {
+                            alert(
+                              "No tienes permiso para eliminar este registro"
+                            );
                           }
-                        );
-
-                        setRecords(
-                          records.filter(
-                            (item) =>
-                              item.id !== r.id
-                          )
-                        );
-                      }}
-                      className="text-red-600 text-sm"
-                    >
-                      🗑 Eliminar
-                    </button>
+                        }}
+                        className="text-red-600 text-sm"
+                      >
+                        🗑 Eliminar
+                      </button>
+                    )}
                   </div>
                 </>
               )}
