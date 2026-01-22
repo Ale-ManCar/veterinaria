@@ -8,15 +8,11 @@ exports.getRecordsByPet = async (req, res) => {
 
   try {
     const [rows] = await db.query(
-      `
-      SELECT 
-        mr.*, 
-        u.name AS vet_name
+      `SELECT mr.*, u.name AS vet_name
       FROM medical_records mr
-      JOIN users u ON mr.user_id = u.id
+      JOIN users u ON u.id = mr.user_id
       WHERE mr.pet_id = ?
-      ORDER BY mr.created_at DESC
-      `,
+      ORDER BY mr.created_at DESC`,
       [petId]
     );
 
@@ -32,10 +28,10 @@ exports.getRecordsByPet = async (req, res) => {
 // ===============================
 exports.createRecord = async (req, res) => {
   const { pet_id, visit_date, diagnosis, treatment } = req.body;
-  const user_id = req.user.id; // 🔑 viene del token
+  const user_id = req.user.id;
 
-  if (!pet_id || !visit_date) {
-    return res.status(400).json({ message: "Datos incompletos" });
+  if (!pet_id) {
+    return res.status(400).json({ message: "pet_id es obligatorio" });
   }
 
   try {
@@ -43,7 +39,13 @@ exports.createRecord = async (req, res) => {
       `INSERT INTO medical_records 
        (pet_id, user_id, visit_date, diagnosis, treatment)
        VALUES (?, ?, ?, ?, ?)`,
-      [pet_id, user_id, visit_date, diagnosis, treatment]
+      [
+        pet_id,
+        user_id,
+        visit_date || new Date(),
+        diagnosis,
+        treatment,
+      ]
     );
 
     res.status(201).json({
@@ -51,7 +53,7 @@ exports.createRecord = async (req, res) => {
       id: result.insertId,
     });
   } catch (error) {
-    console.error("❌ ERROR INSERT MEDICAL:", error);
+    console.error(error);
     res.status(500).json({ message: "Error al crear historial clínico" });
   }
 };
