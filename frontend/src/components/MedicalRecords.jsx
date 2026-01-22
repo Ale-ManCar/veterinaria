@@ -7,20 +7,33 @@ export default function MedicalRecords({ pet, onClose }) {
   const [records, setRecords] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
-  // crear
+  // ===============================
+  // ESTADÍSTICAS
+  // ===============================
+  const totalRecords = records.length;
+  const lastRecord = records.length > 0 ? records[0] : null;
+
+  // ===============================
+  // CREAR
+  // ===============================
   const [visitDate, setVisitDate] = useState("");
   const [diagnosis, setDiagnosis] = useState("");
   const [treatment, setTreatment] = useState("");
 
-  // editar
+  // ===============================
+  // EDITAR
+  // ===============================
   const [editingId, setEditingId] = useState(null);
   const [editVisitDate, setEditVisitDate] = useState("");
   const [editDiagnosis, setEditDiagnosis] = useState("");
   const [editTreatment, setEditTreatment] = useState("");
 
+  // ===============================
+  // IMPRIMIR
+  // ===============================
   const handlePrint = () => {
     window.print();
-  }
+  };
 
   // ===============================
   // CARGAR HISTORIAL
@@ -81,7 +94,6 @@ export default function MedicalRecords({ pet, onClose }) {
     setVisitDate("");
     setDiagnosis("");
     setTreatment("");
-
     loadRecords();
   };
 
@@ -136,21 +148,46 @@ export default function MedicalRecords({ pet, onClose }) {
         </button>
       </div>
 
-      {/* Nueva consulta */}
-      <button
-        onClick={() => setShowForm(true)}
-        className="mb-4 bg-green-600 text-white px-3 py-1 rounded"
-      >
-        + Nueva consulta
-      </button>
+      {/* Acciones */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setShowForm(true)}
+          className="bg-green-600 text-white px-3 py-1 rounded"
+        >
+          + Nueva consulta
+        </button>
 
-      {/* Imprimir Historial */}
-      <button
-        onClick={handlePrint}
-        className="mb-4 ml-2 bg-gray-700 text-white px-3 py-1 rounded"
-      >
-        🖨 Imprimir historial
-      </button>
+        <button
+          onClick={handlePrint}
+          className="bg-gray-700 text-white px-3 py-1 rounded"
+        >
+          🖨 Imprimir
+        </button>
+      </div>
+
+      {/* ===== ESTADÍSTICAS ===== */}
+      {records.length > 0 && (
+        <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+          <div className="bg-gray-100 p-3 rounded">
+            <p className="text-gray-500">Total consultas</p>
+            <p className="font-bold text-lg">{totalRecords}</p>
+          </div>
+
+          <div className="bg-gray-100 p-3 rounded">
+            <p className="text-gray-500">Última consulta</p>
+            <p className="font-bold">
+              {new Date(lastRecord.visit_date).toLocaleDateString()}
+            </p>
+          </div>
+
+          <div className="bg-gray-100 p-3 rounded">
+            <p className="text-gray-500">Veterinario</p>
+            <p className="font-bold">
+              {lastRecord.vet_name || "—"}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Formulario */}
       {showForm && (
@@ -264,7 +301,6 @@ export default function MedicalRecords({ pet, onClose }) {
                     {new Date(r.created_at).toLocaleString()}
                   </p>
 
-                  {/* Acciones con permisos */}
                   <div className="flex gap-3 mt-2">
                     {(user.role === "admin" || r.user_id === user.id) && (
                       <button
@@ -290,11 +326,8 @@ export default function MedicalRecords({ pet, onClose }) {
                             }
                           );
 
-                          if (res.ok) {
-                            loadRecords();
-                          } else {
-                            alert("No tienes permiso para eliminar este registro");
-                          }
+                          if (res.ok) loadRecords();
+                          else alert("No tienes permiso");
                         }}
                         className="text-red-600 text-sm"
                       >
