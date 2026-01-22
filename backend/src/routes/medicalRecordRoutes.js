@@ -5,6 +5,7 @@ const auth = require("../middleware/authMiddleware");
 
 router.get("/pets/:petId", auth, controller.getRecordsByPet);
 router.post("/", auth, controller.createRecord);
+router.put("/:id", auth, controller.updateRecord);
 router.delete("/:id", auth, controller.deleteRecord);
 
 module.exports = router;

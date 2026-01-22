@@ -70,3 +70,30 @@ exports.deleteRecord = async (req, res) => {
     res.status(500).json({ message: "Error al eliminar historial clínico" });
   }
 };
+
+
+// ==================================
+// ✏️ ACTUALIZAR HISTORIAL CLÍNICO
+// ==================================
+exports.updateRecord = async (req, res) => {
+  const { id } = req.params;
+  const { visit_date, diagnosis, treatment } = req.body;
+
+  if (!visit_date) {
+    return res.status(400).json({ message: "La fecha es obligatoria" });
+  }
+
+  try {
+    await db.query(
+      `UPDATE medical_records 
+       SET visit_date = ?, diagnosis = ?, treatment = ?
+       WHERE id = ?`,
+      [visit_date, diagnosis, treatment, id]
+    );
+
+    res.json({ message: "Historial actualizado correctamente" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al actualizar historial" });
+  }
+};
